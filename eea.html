@@ -103,7 +103,7 @@
     // Global variables for the current question.
     let a = 0, b = 0, computedGcd = 0;
 
-    // A simple function to compute the gcd of two numbers.
+    // Compute the gcd of two numbers.
     function gcd(x, y) {
       while (y !== 0) {
         let temp = y;
@@ -144,19 +144,23 @@
         return;
       }
       
-      // The answer is correct if:
-      //   1. The user's gcd equals the actual gcd.
-      //   2. The linear combination a * x + b * y equals that gcd.
-      if (userGcd === computedGcd && (a * userX + b * userY) === computedGcd) {
-        resultDiv.textContent = "Correct!";
-        resultDiv.style.color = "green";
+      // Check if the entered gcd is correct.
+      if (userGcd === computedGcd) {
+        // If gcd is correct, verify the linear combination.
+        if ((a * userX + b * userY) === computedGcd) {
+          resultDiv.textContent = "Correct!";
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.textContent = "You got the right gcd but the wrong x and y.";
+          resultDiv.style.color = "red";
+        }
       } else {
-        resultDiv.textContent = "Incorrect. Try again.";
+        resultDiv.textContent = "Everything wrong.";
         resultDiv.style.color = "red";
       }
     }
 
-    // Set up event listeners for the buttons.
+    // Set up event listeners.
     document.getElementById('checkButton').addEventListener('click', checkAnswer);
     document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
 
