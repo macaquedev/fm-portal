@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Extended Euclidean Algorithm Practice</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    /* Centered container with a clean white background */
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+    }
+    .equation {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin-bottom: 20px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 1.1em;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+    .home-link {
+      margin-top: 20px;
+      display: block;
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Extended Euclidean Algorithm Practice</h1>
+    <div class="question">
+      Given two integers, find the greatest common divisor <strong>d</strong>, and integers <strong>x</strong> and <strong>y</strong> such that:
+    </div>
+    <div class="equation" id="equationDisplay">
+      <!-- Example: "a * x + b * y = d" will be displayed here -->
+    </div>
+    <!-- Input fields for the user's answer -->
+    <input type="number" id="userGcd" placeholder="Enter d (gcd)" />
+    <input type="number" id="userX" placeholder="Enter x" />
+    <input type="number" id="userY" placeholder="Enter y" />
+    <div>
+      <button id="checkButton">Check Answer</button>
+      <button id="newQuestionButton">New Question</button>
+    </div>
+    <div class="result" id="result"></div>
+    <a href="index.html" class="home-link">← Back to Home</a>
+  </div>
+
+  <script>
+    // Global variables for the current question.
+    let a = 0, b = 0, computedGcd = 0;
+
+    // A simple function to compute the gcd of two numbers.
+    function gcd(x, y) {
+      while (y !== 0) {
+        let temp = y;
+        y = x % y;
+        x = temp;
+      }
+      return x;
+    }
+
+    // Generate a new problem with two random integers between 20 and 100.
+    function generateQuestion() {
+      a = Math.floor(Math.random() * 81) + 20;  // Random integer between 20 and 100.
+      b = Math.floor(Math.random() * 81) + 20;
+      computedGcd = gcd(a, b);
+      
+      // Display the equation using the generated values.
+      const equationDisplay = document.getElementById('equationDisplay');
+      equationDisplay.textContent = a + " * x + " + b + " * y = d";
+      
+      // Clear any previous input and result.
+      document.getElementById('userGcd').value = "";
+      document.getElementById('userX').value = "";
+      document.getElementById('userY').value = "";
+      document.getElementById('result').textContent = "";
+    }
+
+    // Check if the user's answer is valid.
+    function checkAnswer() {
+      const userGcd = parseInt(document.getElementById('userGcd').value, 10);
+      const userX = parseInt(document.getElementById('userX').value, 10);
+      const userY = parseInt(document.getElementById('userY').value, 10);
+      const resultDiv = document.getElementById('result');
+      
+      // Ensure all fields have valid numbers.
+      if (isNaN(userGcd) || isNaN(userX) || isNaN(userY)) {
+        resultDiv.textContent = "Please enter valid numbers for all fields.";
+        resultDiv.style.color = "red";
+        return;
+      }
+      
+      // The answer is correct if:
+      //   1. The user's gcd equals the actual gcd.
+      //   2. The linear combination a * x + b * y equals that gcd.
+      if (userGcd === computedGcd && (a * userX + b * userY) === computedGcd) {
+        resultDiv.textContent = "Correct!";
+        resultDiv.style.color = "green";
+      } else {
+        resultDiv.textContent = "Incorrect. Try again.";
+        resultDiv.style.color = "red";
+      }
+    }
+
+    // Set up event listeners for the buttons.
+    document.getElementById('checkButton').addEventListener('click', checkAnswer);
+    document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+
+    // Generate an initial question when the page loads.
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CRT Practice</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+    }
+    .equations {
+      text-align: left;
+      margin: 0 auto 20px;
+      max-width: 300px;
+    }
+    .equation {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin: 5px 0;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 1.1em;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+    .home-link {
+      margin-top: 20px;
+      display: block;
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Chinese Remainder Theorem</h1>
+    <div class="question">
+      Solve for the smallest non-negative integer <strong>x</strong> that satisfies:
+    </div>
+    <div class="equations" id="equations">
+      <!-- CRT equations will appear here -->
+    </div>
+    <!-- Instead of showing the modulo product, ask the user to input it -->
+    <input type="number" id="userAnswer" placeholder="Enter your answer for x" />
+    <input type="number" id="userModulo" placeholder="Enter the modulo" />
+    <div>
+      <button id="checkButton">Check Answer</button>
+      <button id="newQuestionButton">New Question</button>
+    </div>
+    <div class="result" id="result"></div>
+    <a href="index.html" class="home-link">← Back to Home</a>
+  </div>
+
+  <script>
+    // Global variables for the current CRT question.
+    let currentModuli = [];
+    let currentRemainders = [];
+    let correctAnswer = 0;
+    let modProduct = 0;
+
+    // Compute the modular inverse of a modulo m using the Extended Euclidean Algorithm.
+    function modInverse(a, m) {
+      let m0 = m, x0 = 0, x1 = 1;
+      if (m === 1) return 0;
+      while (a > 1) {
+        let q = Math.floor(a / m);
+        let t = m;
+        m = a % m;
+        a = t;
+        t = x0;
+        x0 = x1 - q * x0;
+        x1 = t;
+      }
+      if (x1 < 0) x1 += m0;
+      return x1;
+    }
+
+    // Solve the CRT system given moduli and remainders.
+    function solveCRT(moduli, remainders) {
+      let prod = 1;
+      for (let m of moduli) {
+        prod *= m;
+      }
+      let sum = 0;
+      for (let i = 0; i < moduli.length; i++) {
+        let p = prod / moduli[i];
+        sum += remainders[i] * modInverse(p, moduli[i]) * p;
+      }
+      return sum % prod;
+    }
+
+    // Generate a new CRT question.
+    function generateQuestion() {
+      // Use a list of small primes to ensure the moduli are pairwise coprime.
+      const primes = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+      let availablePrimes = primes.slice();
+      currentModuli = [];
+      // Choose three distinct primes.
+      for (let i = 0; i < 3; i++) {
+        let index = Math.floor(Math.random() * availablePrimes.length);
+        currentModuli.push(availablePrimes[index]);
+        availablePrimes.splice(index, 1);
+      }
+      // For each modulus, choose a random remainder between 0 and m - 1.
+      currentRemainders = currentModuli.map(m => Math.floor(Math.random() * m));
+      modProduct = currentModuli.reduce((a, b) => a * b, 1);
+      correctAnswer = solveCRT(currentModuli, currentRemainders);
+
+      // Display the equations.
+      const equationsDiv = document.getElementById('equations');
+      equationsDiv.innerHTML = "";
+      for (let i = 0; i < currentModuli.length; i++) {
+        const eqDiv = document.createElement('div');
+        eqDiv.className = 'equation';
+        eqDiv.textContent = "x ≡ " + currentRemainders[i] + " (mod " + currentModuli[i] + ")";
+        equationsDiv.appendChild(eqDiv);
+      }
+      
+      // Clear previous input and result.
+      document.getElementById('userAnswer').value = "";
+      document.getElementById('userModulo').value = "";
+      document.getElementById('result').textContent = "";
+    }
+
+    // Check the user's answer and modulo without revealing the correct ones.
+    function checkAnswer() {
+      const userX = parseInt(document.getElementById('userAnswer').value, 10);
+      const userMod = parseInt(document.getElementById('userModulo').value, 10);
+      const resultDiv = document.getElementById('result');
+
+      if (isNaN(userX) || isNaN(userMod)) {
+        resultDiv.textContent = "Please enter valid numbers for both fields.";
+        resultDiv.style.color = "red";
+        return;
+      }
+      if (userX === correctAnswer && userMod === modProduct) {
+        resultDiv.textContent = "Correct!";
+        resultDiv.style.color = "green";
+      } else {
+        resultDiv.textContent = "Incorrect. Try again.";
+        resultDiv.style.color = "red";
+      }
+    }
+
+    // Set up event listeners.
+    document.getElementById('checkButton').addEventListener('click', checkAnswer);
+    document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+
+    // Generate an initial question when the page loads.
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>
