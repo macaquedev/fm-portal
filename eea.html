@@ -87,7 +87,7 @@
       Given two integers, find the greatest common divisor <strong>d</strong>, and integers <strong>x</strong> and <strong>y</strong> such that:
     </div>
     <div class="equation" id="equationDisplay">
-      <!-- Example: "a * x + b * y = d" will be displayed here -->
+      <!-- Example: "24x + 32y = d" will be displayed here -->
     </div>
     <!-- Input fields for the user's answer -->
     <input type="number" id="userGcd" placeholder="Enter d (gcd)" />
@@ -147,10 +147,9 @@
       b = Math.floor(Math.random() * 81) + 20;
       computedGcd = gcd(a, b);
       
-      // Display the equation using the generated values.
+      // Display the equation using the generated values in the new format.
       const equationDisplay = document.getElementById('equationDisplay');
-      // Using a compact format for clarity.
-      equationDisplay.textContent = a + " * x + " + b + " * y = d";
+      equationDisplay.textContent = a + "x + " + b + "y = d";
       
       // Clear any previous input and result.
       document.getElementById('userGcd').value = "";
@@ -168,7 +167,7 @@
         computedGcd = previous.computedGcd;
         // Update the display.
         const equationDisplay = document.getElementById('equationDisplay');
-        equationDisplay.textContent = a + " * x + " + b + " * y = d";
+        equationDisplay.textContent = a + "x + " + b + "y = d";
         // Clear user inputs and result.
         document.getElementById('userGcd').value = "";
         document.getElementById('userX').value = "";
@@ -220,7 +219,7 @@
         "x = " + xSolution + "<br>" +
         "y = " + ySolution + "<br>" +
         "d = " + d + "<br>" +
-        a + " * (" + xSolution + ") + " + b + " * (" + ySolution + ") = " + d;
+        a + "x + " + b + "y = " + d;
       resultDiv.style.color = "blue";
     }
 
