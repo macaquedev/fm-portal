@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Two Congruence System Practice</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    /* Centered container with a clean white background */
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+    }
+    .equation {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 1.1em;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+    /* Styling for navigation links (Back to Home and Previous Question) */
+    .nav-link {
+      margin-top: 20px;
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Two Congruence System Practice</h1>
+    <div class="question">
+      Solve the system:
+    </div>
+    <div class="equation" id="equationDisplay">
+      <!-- The two generated congruences will be displayed here -->
+    </div>
+    <!-- For a consistent system, enter the solution as "x = R mod M".
+         If there is no solution, type "n" (any capitalization) in the first field. -->
+    <input type="text" id="userX" placeholder="Enter x (or 'n' if no solution)" />
+    <input type="text" id="userModulo" placeholder="Enter modulo (if applicable)" />
+    <div>
+      <button id="checkButton">Check Answer</button>
+      <button id="newQuestionButton">New Question</button>
+      <button id="showSolutionButton">Show Solution</button>
+    </div>
+    <div class="result" id="result"></div>
+    <!-- Navigation links: Previous Question and Back to Home, styled alike -->
+    <div style="margin-top:20px; text-align:center;">
+      <a href="javascript:loadPreviousQuestion()" class="nav-link">← Previous Question</a>
+      <a href="index.html" class="nav-link">← Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    // Utility functions: gcd and lcm.
+    function gcd(x, y) {
+      while (y !== 0) {
+        let temp = y;
+        y = x % y;
+        x = temp;
+      }
+      return x;
+    }
+    function lcm(x, y) {
+      return (x * y) / gcd(x, y);
+    }
+
+    // Global variables for the current two-congruence system.
+    let a1, b1, n1, a2, b2, n2;
+    let d1, m1, r1; // For eq1: canonical form: x ≡ r1 (mod m1)
+    let d2, m2, r2; // For eq2: canonical form: x ≡ r2 (mod m2)
+    let systemConsistent;  // true if the system has a solution.
+    let globalX;           // The chosen solution for a consistent system.
+    let combinedR, combinedM; // For a consistent system, solution: x ≡ combinedR (mod combinedM)
+
+    // The stack for storing previous questions.
+    let questionStack = [];
+
+    // Generate a random integer between min and max (inclusive).
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Generate a new system of two congruences.
+    function generateQuestion() {
+      // If a current question exists, push it onto the stack.
+      if (typeof a1 !== 'undefined') {
+        questionStack.push({
+          a1, b1, n1, a2, b2, n2,
+          d1, m1, r1, d2, m2, r2,
+          systemConsistent, globalX, combinedR, combinedM
+        });
+      }
+
+      // Decide whether the system will be consistent (80% chance).
+      systemConsistent = (Math.random() < 0.8);
+
+      // --- Equation 1 ---
+      n1 = randomInt(10, 50);
+      a1 = randomInt(2, n1 - 1);
+      // Choose a globalX for eq1.
+      globalX = randomInt(0, 100);
+      b1 = (a1 * globalX) % n1;
+      d1 = gcd(a1, n1);
+      m1 = n1 / d1; 
+      r1 = globalX % m1;  // canonical remainder for eq1
+
+      // --- Equation 2 ---
+      // For consistency: use the same globalX.
+      // For inconsistency: force a discrepancy.
+      if (systemConsistent) {
+        n2 = randomInt(10, 50);
+        a2 = randomInt(2, n2 - 1);
+        b2 = (a2 * globalX) % n2;
+        d2 = gcd(a2, n2);
+        m2 = n2 / d2;
+        r2 = globalX % m2;
+      } else {
+        // For forced inconsistency, we need to have gcd(m1, m2) > 1.
+        do {
+          n2 = randomInt(10, 50);
+          a2 = randomInt(2, n2 - 1);
+          d2 = gcd(a2, n2);
+          m2 = n2 / d2;
+        } while (gcd(m1, m2) === 1);
+        let g = gcd(m1, m2);
+        // Now pick Y so that (Y mod m2) mod g ≠ (globalX mod g).
+        let Y;
+        do {
+          Y = randomInt(0, 100);
+        } while ((Y % m2) % g === (globalX % g));
+        b2 = (a2 * Y) % n2;
+        r2 = Y % m2;
+      }
+
+      // For a consistent system, combine the two canonical congruences.
+      if (systemConsistent) {
+        combinedM = lcm(m1, m2);
+        combinedR = globalX % combinedM;
+      }
+
+      // Display the two congruences in compact form.
+      const equationDisplay = document.getElementById('equationDisplay');
+      equationDisplay.innerHTML = 
+        a1 + "x ≡ " + b1 + " (mod " + n1 + ")<br>" +
+        a2 + "x ≡ " + b2 + " (mod " + n2 + ")";
+
+      // Clear previous input and result.
+      document.getElementById('userX').value = "";
+      document.getElementById('userModulo').value = "";
+      document.getElementById('result').textContent = "";
+    }
+
+    // Load the previous question from the stack.
+    function loadPreviousQuestion() {
+      if (questionStack.length > 0) {
+        const previousQuestion = questionStack.pop();
+        // Restore all global variables.
+        ({ a1, b1, n1, a2, b2, n2, d1, m1, r1, d2, m2, r2, systemConsistent, globalX, combinedR, combinedM } = previousQuestion);
+        // Update the display.
+        const equationDisplay = document.getElementById('equationDisplay');
+        equationDisplay.innerHTML = 
+          a1 + "x ≡ " + b1 + " (mod " + n1 + ")<br>" +
+          a2 + "x ≡ " + b2 + " (mod " + n2 + ")";
+        // Clear user input and result.
+        document.getElementById('userX').value = "";
+        document.getElementById('userModulo').value = "";
+        document.getElementById('result').textContent = "";
+      } else {
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = "No previous question available.";
+        resultDiv.style.color = "red";
+      }
+    }
+
+    // Check the user's answer.
+    function checkAnswer() {
+      const resultDiv = document.getElementById('result');
+      let answerX = document.getElementById('userX').value.trim();
+      let answerMod = document.getElementById('userModulo').value.trim();
+
+      if (!systemConsistent) {
+        // For an inconsistent system, expect the user to type "n" (any case).
+        if (answerX.toLowerCase() === "n") {
+          resultDiv.textContent = "Correct!";
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.textContent = "Incorrect. There is no solution; type 'n'.";
+          resultDiv.style.color = "red";
+        }
+      } else {
+        // For a consistent system, expect two numbers: x (remainder) and the modulus.
+        let numR = parseInt(answerX, 10);
+        let numM = parseInt(answerMod, 10);
+        if (isNaN(numR) || isNaN(numM)) {
+          resultDiv.textContent = "Please enter valid numbers for both fields.";
+          resultDiv.style.color = "red";
+          return;
+        }
+        // Normalize the entered remainder.
+        numR = ((numR % numM) + numM) % numM;
+        if (numM === combinedM && numR === combinedR) {
+          resultDiv.textContent = "Correct!";
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.textContent = "Incorrect. Try again.";
+          resultDiv.style.color = "red";
+        }
+      }
+    }
+
+    // Show the solution.
+    function showSolution() {
+      const resultDiv = document.getElementById('result');
+      if (!systemConsistent) {
+        resultDiv.textContent = "No solution.";
+        resultDiv.style.color = "blue";
+      } else {
+        resultDiv.textContent = "x = " + combinedR + " mod " + combinedM;
+        resultDiv.style.color = "blue";
+      }
+    }
+
+    // Set up event listeners.
+    document.getElementById('checkButton').addEventListener('click', checkAnswer);
+    document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+    document.getElementById('showSolutionButton').addEventListener('click', showSolution);
+
+    // The "Previous Question" link uses the loadPreviousQuestion() function.
+    // Generate an initial question when the page loads.
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>

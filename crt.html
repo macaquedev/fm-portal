@@ -72,12 +72,14 @@
       margin-top: 20px;
       min-height: 1.5em;
     }
+    /* Both navigation links use the same styling */
     .home-link {
       margin-top: 20px;
-      display: block;
+      display: inline-block;
       color: #4caf50;
       text-decoration: none;
       font-weight: bold;
+      margin-right: 15px;
     }
   </style>
 </head>
@@ -96,9 +98,14 @@
     <div>
       <button id="checkButton">Check Answer</button>
       <button id="newQuestionButton">New Question</button>
+      <button id="showSolutionButton">Show Solution</button>
     </div>
     <div class="result" id="result"></div>
-    <a href="index.html" class="home-link">← Back to Home</a>
+    <!-- Navigation links: Previous Question and Back to Home -->
+    <div style="margin-top:20px; text-align:center;">
+      <a href="javascript:loadPreviousQuestion()" class="home-link">← Previous Question</a>
+      <a href="index.html" class="home-link">← Back to Home</a>
+    </div>
   </div>
 
   <script>
@@ -107,6 +114,8 @@
     let currentRemainders = [];
     let correctAnswer = 0;
     let modProduct = 0;
+    // Stack to store previous CRT questions.
+    let questionStack = [];
 
     // Compute the modular inverse of a modulo m using the Extended Euclidean Algorithm.
     function modInverse(a, m) {
@@ -141,6 +150,16 @@
 
     // Generate a new CRT question.
     function generateQuestion() {
+      // If there is a current question, push it onto the stack.
+      if (currentModuli.length > 0) {
+        questionStack.push({
+          currentModuli: currentModuli.slice(),
+          currentRemainders: currentRemainders.slice(),
+          modProduct,
+          correctAnswer
+        });
+      }
+      
       // Use a list of small primes to ensure the moduli are pairwise coprime.
       const primes = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
       let availablePrimes = primes.slice();
@@ -172,6 +191,36 @@
       document.getElementById('result').textContent = "";
     }
 
+    // Load the previous CRT question from the stack.
+    function loadPreviousQuestion() {
+      if (questionStack.length > 0) {
+        const previous = questionStack.pop();
+        currentModuli = previous.currentModuli.slice();
+        currentRemainders = previous.currentRemainders.slice();
+        modProduct = previous.modProduct;
+        correctAnswer = previous.correctAnswer;
+        
+        // Update the equations display.
+        const equationsDiv = document.getElementById('equations');
+        equationsDiv.innerHTML = "";
+        for (let i = 0; i < currentModuli.length; i++) {
+          const eqDiv = document.createElement('div');
+          eqDiv.className = 'equation';
+          eqDiv.textContent = "x ≡ " + currentRemainders[i] + " (mod " + currentModuli[i] + ")";
+          equationsDiv.appendChild(eqDiv);
+        }
+        
+        // Clear previous input and result.
+        document.getElementById('userAnswer').value = "";
+        document.getElementById('userModulo').value = "";
+        document.getElementById('result').textContent = "";
+      } else {
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = "No previous question available.";
+        resultDiv.style.color = "red";
+      }
+    }
+
     // Check the user's answer and modulo without revealing the correct ones.
     function checkAnswer() {
       const userX = parseInt(document.getElementById('userAnswer').value, 10);
@@ -192,9 +241,17 @@
       }
     }
 
+    // Show the solution in the form "x = [correctAnswer] mod [modProduct]".
+    function showSolution() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = "x = " + correctAnswer + " mod " + modProduct;
+      resultDiv.style.color = "blue";
+    }
+
     // Set up event listeners.
     document.getElementById('checkButton').addEventListener('click', checkAnswer);
     document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+    document.getElementById('showSolutionButton').addEventListener('click', showSolution);
 
     // Generate an initial question when the page loads.
     window.onload = generateQuestion;

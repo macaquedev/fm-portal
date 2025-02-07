@@ -69,12 +69,14 @@
       margin-top: 20px;
       min-height: 1.5em;
     }
-    .home-link {
+    /* Navigation link styling */
+    .nav-link {
       margin-top: 20px;
-      display: block;
+      display: inline-block;
       color: #4caf50;
       text-decoration: none;
       font-weight: bold;
+      margin-right: 15px;
     }
   </style>
 </head>
@@ -94,14 +96,21 @@
     <div>
       <button id="checkButton">Check Answer</button>
       <button id="newQuestionButton">New Question</button>
+      <button id="showSolutionButton">Show Solution</button>
     </div>
     <div class="result" id="result"></div>
-    <a href="index.html" class="home-link">← Back to Home</a>
+    <!-- Navigation links: Previous Question and Back to Home -->
+    <div style="margin-top:20px; text-align:center;">
+      <a href="javascript:loadPreviousQuestion()" class="nav-link">← Previous Question</a>
+      <a href="index.html" class="nav-link">← Back to Home</a>
+    </div>
   </div>
 
   <script>
     // Global variables for the current question.
     let a = 0, b = 0, computedGcd = 0;
+    // A stack to store previous questions.
+    let questionStack = [];
 
     // Compute the gcd of two numbers.
     function gcd(x, y) {
@@ -113,14 +122,34 @@
       return x;
     }
 
+    // Extended Euclidean Algorithm.
+    // Returns an array [d, x, y] such that a*x + b*y = d, where d = gcd(a, b).
+    function extendedGcd(a, b) {
+      if (b === 0) {
+        return [a, 1, 0];
+      } else {
+        let [d, x1, y1] = extendedGcd(b, a % b);
+        let x = y1;
+        let y = x1 - Math.floor(a / b) * y1;
+        return [d, x, y];
+      }
+    }
+
     // Generate a new problem with two random integers between 20 and 100.
     function generateQuestion() {
-      a = Math.floor(Math.random() * 81) + 20;  // Random integer between 20 and 100.
+      // If a current question exists (i.e. if a is nonzero), push it onto the stack.
+      if (a !== 0 || b !== 0) {
+        questionStack.push({ a, b, computedGcd });
+      }
+
+      // Generate random integers between 20 and 100.
+      a = Math.floor(Math.random() * 81) + 20;
       b = Math.floor(Math.random() * 81) + 20;
       computedGcd = gcd(a, b);
       
       // Display the equation using the generated values.
       const equationDisplay = document.getElementById('equationDisplay');
+      // Using a compact format for clarity.
       equationDisplay.textContent = a + " * x + " + b + " * y = d";
       
       // Clear any previous input and result.
@@ -128,6 +157,28 @@
       document.getElementById('userX').value = "";
       document.getElementById('userY').value = "";
       document.getElementById('result').textContent = "";
+    }
+
+    // Load the previous question from the stack.
+    function loadPreviousQuestion() {
+      if (questionStack.length > 0) {
+        const previous = questionStack.pop();
+        a = previous.a;
+        b = previous.b;
+        computedGcd = previous.computedGcd;
+        // Update the display.
+        const equationDisplay = document.getElementById('equationDisplay');
+        equationDisplay.textContent = a + " * x + " + b + " * y = d";
+        // Clear user inputs and result.
+        document.getElementById('userGcd').value = "";
+        document.getElementById('userX').value = "";
+        document.getElementById('userY').value = "";
+        document.getElementById('result').textContent = "";
+      } else {
+        const resultDiv = document.getElementById('result');
+        resultDiv.textContent = "No previous question available.";
+        resultDiv.style.color = "red";
+      }
     }
 
     // Check if the user's answer is valid.
@@ -160,9 +211,23 @@
       }
     }
 
+    // Show the solution in the required format.
+    function showSolution() {
+      // Compute the extended GCD solution.
+      let [d, xSolution, ySolution] = extendedGcd(a, b);
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML =
+        "x = " + xSolution + "<br>" +
+        "y = " + ySolution + "<br>" +
+        "d = " + d + "<br>" +
+        a + " * (" + xSolution + ") + " + b + " * (" + ySolution + ") = " + d;
+      resultDiv.style.color = "blue";
+    }
+
     // Set up event listeners.
     document.getElementById('checkButton').addEventListener('click', checkAnswer);
     document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+    document.getElementById('showSolutionButton').addEventListener('click', showSolution);
 
     // Generate an initial question when the page loads.
     window.onload = generateQuestion;

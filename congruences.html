@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modular Arithmetic Practice</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    /* Centered container with a clean white background */
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+    }
+    .equation {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin-bottom: 20px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 1.1em;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+    .home-link {
+      margin-top: 20px;
+      display: block;
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modular Arithmetic Practice</h1>
+    <div class="question">
+      Solve the congruence:
+    </div>
+    <div class="equation" id="equationDisplay">
+      <!-- The generated congruence will be displayed here -->
+    </div>
+    <!-- Input fields for the answer: the value for x and the modulo -->
+    <input type="number" id="userX" placeholder="Enter x (remainder)" />
+    <input type="number" id="userModulo" placeholder="Enter modulo" />
+    <div>
+      <button id="checkButton">Check Answer</button>
+      <button id="newQuestionButton">New Question</button>
+      <button id="showSolutionButton">Show Solution</button>
+    </div>
+    <div class="result" id="result"></div>
+    <a href="index.html" class="home-link">← Back to Home</a>
+  </div>
+
+  <script>
+    // Global variables for the current question.
+    let a = 0, b = 0, n = 0, correctSolution = 0;
+
+    // Compute the greatest common divisor.
+    function gcd(x, y) {
+      while (y !== 0) {
+        let temp = y;
+        y = x % y;
+        x = temp;
+      }
+      return x;
+    }
+
+    // Returns the canonical solution and the reduced modulus.
+    // For a congruence a*x ≡ b (mod n) with d = gcd(a, n),
+    // the unique solution in canonical form is x ≡ (correctSolution mod (n/d)) (mod n/d)
+    function getCanonicalSolution() {
+      let d = gcd(a, n);
+      let reducedMod = n / d;
+      let canonicalSolution = correctSolution % reducedMod;
+      return { canonicalSolution, reducedMod };
+    }
+
+    // Generate a new congruence problem of the form: a*x ≡ b (mod n)
+    function generateQuestion() {
+      // Choose n as a random integer between 10 and 50 (composite values possible)
+      n = Math.floor(Math.random() * 41) + 10;
+      
+      // Choose a random coefficient a in the range [2, n-1]
+      a = Math.floor(Math.random() * (n - 2)) + 2;
+      
+      // Choose a random solution x in the range [0, n-1]
+      correctSolution = Math.floor(Math.random() * n);
+      
+      // Compute b so that a*x ≡ b (mod n)
+      b = (a * correctSolution) % n;
+      
+      // Display the generated congruence in compact format (e.g., "8x ≡ 3 (mod 17)")
+      const equationDisplay = document.getElementById('equationDisplay');
+      equationDisplay.textContent = a + "x ≡ " + b + " (mod " + n + ")";
+      
+      // Clear any previous input and result.
+      document.getElementById('userX').value = "";
+      document.getElementById('userModulo').value = "";
+      document.getElementById('result').textContent = "";
+    }
+
+    // Check if the user's answer is valid.
+    function checkAnswer() {
+      let userX = parseInt(document.getElementById('userX').value, 10);
+      let userModulo = parseInt(document.getElementById('userModulo').value, 10);
+      const resultDiv = document.getElementById('result');
+      
+      // Ensure both fields have valid numbers.
+      if (isNaN(userX) || isNaN(userModulo)) {
+        resultDiv.textContent = "Please enter valid numbers for both x and modulo.";
+        resultDiv.style.color = "red";
+        return;
+      }
+      
+      // Get the canonical solution and reduced modulus.
+      const { canonicalSolution, reducedMod } = getCanonicalSolution();
+      
+      // Normalize the user's x answer to the range [0, reducedMod - 1].
+      userX = ((userX % reducedMod) + reducedMod) % reducedMod;
+      
+      // Check if the user's provided modulo matches the reduced modulus and the x value is correct.
+      if (userModulo === reducedMod && userX === canonicalSolution) {
+        resultDiv.textContent = "Correct!";
+        resultDiv.style.color = "green";
+      } else {
+        resultDiv.textContent = "Incorrect. Try again.";
+        resultDiv.style.color = "red";
+      }
+    }
+
+    // Show the solution in the form "x = y mod z", using the canonical answer.
+    function showSolution() {
+      const { canonicalSolution, reducedMod } = getCanonicalSolution();
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = "x = " + canonicalSolution + " mod " + reducedMod;
+      resultDiv.style.color = "blue";
+    }
+
+    // Set up event listeners.
+    document.getElementById('checkButton').addEventListener('click', checkAnswer);
+    document.getElementById('newQuestionButton').addEventListener('click', generateQuestion);
+    document.getElementById('showSolutionButton').addEventListener('click', showSolution);
+
+    // Generate an initial question when the page loads.
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>
